@@ -9,8 +9,8 @@ app = FastAPI()
 # 1. CORS Setup: Allows your Chrome Extension (browser) to talk to this script
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  
-    allow_credentials = True,
+    allow_origins=["*"],
+    allow_credentials=True,  
     allow_methods=["*"],
     allow_headers=["*"],
 )
@@ -23,11 +23,10 @@ llm_cfg = {
 }
 
 # 3. Initialize the Assistant
-# We give it a "System Message" to define its personality as an editor
 system_prompt = (
     "You are a professional editor. Summarize the user's web content "
     "into a clean, concise 'Editor's Digest'. Use Markdown for bullet points "
-    "and bold headings where appropriate."
+    "and bold headings where appropriate. Directly output the summary."
 )
 agent = Assistant(llm=llm_cfg, system_message=system_prompt)
 
@@ -38,14 +37,25 @@ async def summarize(request: Request):
     web_text = data.get("text", "")
 
     async def stream_generator():
-        # Agent.run returns a generator for real-time updates
-        messages = [{'role': 'user', 'content': web_text}]
-        for response in agent.run(messages):
-            # Qwen-Agent yields a list of messages; we take the latest content
-            if response:
-                content = response[-1][-1]['content']
-                yield content
+        try:
+            # agent.run is the generator for real-time updates
+            for response in agent.run([{'role': 'user', 'content': web_text}]):
+                if isinstance(response, list) and len(response) > 0:
+                    last_msg = response[-1]
+                    
+                    # Qwen-Agent structure check
+                    if isinstance(last_msg, list) and len(last_msg) > 0:
+                        content = last_msg[-1].get('content', '')
+                        
+                        # CRITICAL: Only yield if content is a valid string
+                        # This prevents the "null" text in your UI
+                        if content is not None:
+                            yield str(content)
+        except Exception as e:
+            print(f"Error during streaming: {e}")
+            yield f"Error: {str(e)}"
 
+    # --- THE FIX: We must RETURN the StreamingResponse ---
     return StreamingResponse(stream_generator(), media_type="text/plain")
 
 if __name__ == "__main__":
