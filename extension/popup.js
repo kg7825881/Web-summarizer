@@ -24,7 +24,7 @@ document.getElementById('summarizeBtn').addEventListener('click', async () => {
             throw new Error("No readable text found on this page.");
         }
 
-        status.innerText = "🤖 Qwen3 is thinking...";
+        status.innerText = "Qwen3 is thinking...";
 
         // 4. Send to our Local FastAPI Server
         const response = await fetch('http://127.0.0.1:7864/summarize_stream_status', {
@@ -46,13 +46,14 @@ document.getElementById('summarizeBtn').addEventListener('click', async () => {
             if (done) break;
             
             const chunk = decoder.decode(value, { stream: true });
+            console.log("Received chunk:", chunk);
             output.innerText += chunk; // This is the real-time "typing" effect
             
             // Auto-scroll to bottom as text grows
             output.scrollTop = output.scrollHeight;
         }
 
-        status.innerText = "✅ Summary Complete!";
+        status.innerText = "Summary Complete!";
 
     } catch (error) {
         console.error(error);
