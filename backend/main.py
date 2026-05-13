@@ -32,30 +32,37 @@ agent = Assistant(llm=llm_cfg, system_message=system_prompt)
 
 @app.post("/summarize_stream_status")
 async def summarize(request: Request):
-    # Receive the text sent from the Chrome extension
     data = await request.json()
     web_text = data.get("text", "")
 
     async def stream_generator():
         try:
-            # agent.run is the generator for real-time updates
+            # We iterate through the agent directly
             for response in agent.run([{'role': 'user', 'content': web_text}]):
-                if isinstance(response, list) and len(response) > 0:
-                    last_msg = response[-1]
-                    
-                    # Qwen-Agent structure check
-                    if isinstance(last_msg, list) and len(last_msg) > 0:
-                        content = last_msg[-1].get('content', '')
-                        
-                        # CRITICAL: Only yield if content is a valid string
-                        # This prevents the "null" text in your UI
-                        if content is not None:
-                            yield str(content)
+                if not response:
+                    continue
+                
+                # Qwen-Agent often sends a complex list. 
+                # This logic drills down to find any string content.
+                try:
+                    # Most common path: response[-1][-1]['content']
+                    # We convert to string to ensure it's never 'null'
+                    content = str(response[-1][-1].get('content', ''))
+                    if content.strip():
+                        yield content
+                except (IndexError, KeyError, TypeError):
+                    # If the structure is different, try the backup path
+                    try:
+                        content = str(response[-1].get('content', ''))
+                        if content.strip():
+                            yield content
+                    except:
+                        continue
         except Exception as e:
-            print(f"Error during streaming: {e}")
+            print(f"Streaming Error: {e}")
             yield f"Error: {str(e)}"
 
-    # --- THE FIX: We must RETURN the StreamingResponse ---
+    # This MUST be returned for the extension to receive data
     return StreamingResponse(stream_generator(), media_type="text/plain")
 
 if __name__ == "__main__":
