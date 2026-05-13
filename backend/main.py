@@ -30,6 +30,11 @@ system_prompt = (
 )
 agent = Assistant(llm=llm_cfg, system_message=system_prompt)
 
+# Add this above your summarize endpoint
+@app.get("/")
+async def health_check():
+    return {"status": "online", "model": "qwen3:1.7b"}
+
 @app.post("/summarize_stream_status")
 async def summarize(request: Request):
     data = await request.json()

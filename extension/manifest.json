@@ -1,11 +1,14 @@
 {
   "manifest_version": 3,
   "name": "Qwen Editor Summarizer",
-  "version": "1.0",
-  "description": "Real-time AI summaries powered by Qwen3",
-  "permissions": ["activeTab", "scripting"],
+  "version": "1.1",
+  "permissions": [
+    "activeTab",
+    "scripting"
+  ],
   "host_permissions": [
-    "http://127.0.0.1/*"
+    "http://127.0.0.1/*",
+    "<all_urls>"
   ],
   "action": {
     "default_popup": "popup.html"
