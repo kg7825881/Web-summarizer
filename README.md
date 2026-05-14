@@ -1,0 +1,81 @@
+# 🤖 Editor's Digest: AI-Powered Web Summarizer
+Editor's Digest is a Chrome Extension that uses a locally hosted Qwen3-1.7B model to transform long, complex web pages into concise, readable "Editor's Digests." It features real-time Markdown streaming and a robust local backend architecture.
+
+**🌟 Features**
+* **Local AI Processing:** Uses Ollama to run the Qwen3 model locally, ensuring your data never leaves your machine.
+
+* **Real-time Streaming:** Watch the summary generate word-by-word with high-performance streaming.
+
+* **Markdown Support:** Automatically formats summaries with bold headings and bullet points for better readability.
+
+* **Robust Error Handling:** Built-in health checks to verify server connectivity before processing.
+
+**🏗️ Architecture**
+* **Frontend:** Chrome Extension (Manifest V3) using vanilla JavaScript.
+
+* **Backend:** FastAPI server running in Python.
+
+* **AI Engine:** Qwen-Agent framework connected to an Ollama server.
+
+* **Text Formatting:** Locally bundled Marked.js for secure Markdown parsing.
+
+
+## 🚀 Getting Started
+
+#### 1. Prerequisites
+* [Ollama](https://ollama.com) installed and running.
+* Python 3.9+ installed.
+* Chrome Browser.
+
+#### 2. Backend Setup
+1. Pull the Model:
+    ```bash
+    ollama pull qwen3:1.7b
+    ```
+2. Install Dependencies:
+    ```bash
+    pip install fastapi uvicorn qwen-agent
+    ```
+
+3.  Run the Server:    
+    ```bash
+    python backend/main.py
+    ```
+
+#### 3. Extension Installation
+1.  Open Chrome and navigate to `chrome://extensions/`.
+2.  Enable **Developer mode** (top right).
+3.  Click **Load unpacked** and select the `extension/` folder in this repository.
+
+
+
+### 🛠️ Project Structure
+```text
+qwen-web-summarizer/
+├── backend/
+│   └── main.py             # FastAPI server & Qwen-Agent logic
+├── extension/
+│   ├── manifest.json       # Extension configuration & permissions
+│   ├── popup.html          # Extension UI
+│   ├── popup.js            # Frontend logic & streaming handler
+│   └── marked.min.js       # Local Markdown library
+└── README.md
+```
+## 📋 Technical Implementation Details
+* **CSP Compliance:** Securely handles local script execution by bundling the Markdown library locally rather than using a CDN.
+
+* **Memory Management:** Implements text chunking (5,000 character limit) to ensure stability on local hardware like MacBook Air.
+
+* **Asynchronous Streaming:** Utilizes StreamingResponse and the ReadableStream API for non-blocking UI updates.
+
+## 📸 Demo & Screenshots
+
+### Extension Interface
+The extension features a clean, dark-themed UI with real-time status updates.
+
+![Extension UI](extension/assets/ui_screenshot.png)
+
+### Successful AI Summary
+Below is an example of a real-time summary generated for the "Mughal Empire" Wikipedia page, showcasing the Markdown rendering capabilities.
+
+![AI Summary Output](extension/assets/output_screenshot.png)
